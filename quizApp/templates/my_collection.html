@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main_content %}
+<!-- Page content -->
+      <section class="container pt-5">
+        <div class="row">
+
+  
+          {% include 'menu_sidebar.html' %}
+
+
+          <!-- Account collections -->
+          <div class="col-md-8 offset-lg-1 pb-5 mb-lg-2 pt-md-5 mt-n3 mt-md-0">
+            <div class="ps-md-3 ps-lg-0 mt-md-2 pt-md-4 pb-md-2">
+              <!-- Launch modal button -->
+              <button type="button" class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#modalId">
+                <i class='bx bx-plus-medical me-2'></i>New Quiz
+              </button>
+              <div class="d-sm-flex align-items-center justify-content-between pt-xl-1 mb-3 pb-3">
+                <h1 class="h2 mb-sm-0">My Collections</h1>
+                <select class="form-select" style="max-width: 15rem;">
+                  <option value="Published">Published</option>
+                  <option value="Category">Category</option>
+                  <option value="Title AZ">Title AZ</option>
+                  <option value="Title ZA">Title ZA</option>
+                </select>
+              </div>
+
+              <!-- Item -->
+              {% for quiz in all_quizes %}
+              <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                <div class="row g-0">
+                  <a href="javascript:" class="col-sm-4 bg-repeat-0 bg-position-center bg-size-cover" style="background-image: url({% static 'assets/img/category/' %}{{quiz.quesset.Category.Name}}.png); background-size:contain !important; min-height: 13rem;"></a>
+                  <div class="col-sm-8">
+                    <div class="card-body">
+                      <div class="fs-sm text-muted mb-1">{{quiz.quesset.DateCreated}}</div>
+                      <h2 class="h4 pb-1 mb-2">
+                        <a href="#" class="quesset_title_text">{{quiz.quesset.Title}}</a>
+                      </h2>
+                      <p class="mb-4 mb-lg-1">{{quiz.quesset.Category.Name}}</p>
+                      <p class="mb-4 mb-lg-3">Total Questions: {{quiz.total}} | Points: {{quiz.points}}</p>
+                      <div class="d-flex">
+                        <a href="#{{quiz.quesset.id}}" quesset_category_id="{{quiz.quesset.Category.id}}" quesset_title_text="{{quiz.quesset.Title}}" target-item-id="{{quiz.quesset.id}}" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" class="edit-quesset-btn btn btn-outline-primary px-3 px-lg-4 me-3">
+                          <i class="bx bx-edit fs-xl me-xl-2"></i>
+                          <span class="d-none d-xl-inline">Edit</span>
+                        </a>
+                        <a href="{% url 'delete_quesset' pk=quiz.quesset.id %}" class="d-none btn btn-outline-secondary px-3 px-lg-4 me-3">
+                          <i class="bx bx-power-off fs-xl me-xl-2"></i>
+                          <span class="d-none d-xl-inline">Deactivate</span>
+                        </a>
+                        <a href="{% url 'delete_quesset' pk=quiz.quesset.id %}" class="btn btn-outline-danger px-3 px-lg-4">
+                          <i class="bx bx-trash-alt fs-xl me-xl-2"></i>
+                          <span class="d-none d-xl-inline">Delete</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vertically centered modal -->
+<div class="modal fade" id="modalId" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form method="post" action="{% url 'create_quesset' %}" class="modal-content quesset_form">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Create New Quiz</h5>
+        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">          
+          <!-- Floating label: Select -->
+          <div class="form-floating mb-4">
+            <select class="form-select" name="category" id="fl-select">
+              <option selected>Select</option>
+              {% for category in categories %}
+              <option value="{{category.id}}">{{category.Name}}</option>
+              {% endfor %}
+            </select>
+            <label for="fl-select">Category</label>
+          </div>
+          <div class="form-floating mb-4">
+            <input class="form-control" name="quiz_title" type="text" id="fl-text" placeholder="Your name">
+            <label for="fl-text">Quiz Title</label>
+          </div>
+          
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm m-auto" type="submit">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Offcanvas position: Right -->
+<style>
+  .option_input {
+    position: relative;
+  }
+  .option_remove {
+    transform: scale(0);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    transition: all ease-in-out 0.2s;
+  }
+  .option_input:hover .option_remove {
+    transform: scale(1);
+  }
+</style>
+<!-- Offcanvas -->
+<div class="offcanvas offcanvas-end quesset_update_box" id="offcanvasRight" tabindex="-1">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title">Add Questions</h5>
+    <button class="btn-close" type="button" data-bs-dismiss="offcanvas"></button>
+  </div>
+  
+  <div class="offcanvas-body pt-1">
+    <form method="post" action="{% url 'create_quesset' %}">
+      {% csrf_token %}
+      
+        <h6 class="mb-1">Create New Quiz</h6>
+      
+          <!-- Floating label: Select -->
+          <div class="form-floating mb-4">
+            <select class="form-select" name="category" id="fl-select">
+              <option selected>Select</option>
+              {% for category in categories %}
+              <option value="{{category.id}}">{{category.Name}}</option>
+              {% endfor %}
+            </select>
+            <label for="fl-select">Category</label>
+          </div>
+          <div class="form-floating mb-4">
+            <input class="form-control form-control-sm" name="quiz_title" type="text" id="fl-text" placeholder="Your name">
+            <label for="fl-text">Quiz Title</label>
+          </div>
+          
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm m-auto" type="submit">Save</button>
+      </div>
+    </form>
+
+    <form method="post" class="options_form" action="/add_options/" target-item-id="">
+      {% csrf_token %}
+      
+        <h6 class="mb-1">Add Questions</h6>
+      
+          
+          <div class="form-floating mb-4">
+            <input class="form-control form-control-sm" name="question" type="text" id="fl-text" placeholder="Your name">
+            <label for="fl-text">Question</label>
+          </div>
+          <div class="combined-option-box"></div>
+          <div class="ques-option-box">
+            <div class="option_input form-floating">
+              <input class="form-control form-control-sm" name="name_option_1" type="text" id="fl-text" placeholder="Option 1">
+              <label for="fl-text">Option 1</label>
+            </div>
+            <div class="option_input form-floating mt-4">
+              <input class="form-control form-control-sm" name="name_option_2" type="text" id="fl-text" placeholder="Option 2">
+              <label for="fl-text">Option 2</label>
+              
+            </div>
+          </div>
+          <div class="row mt-2 mb-2">
+            <div class="col" style="text-align: right;">
+              <span class="mr-2">Add Option</span>
+              <button type="button" class="add_option_input btn btn-secondary btn-icon btn-sm" value="Add New Input">
+                <i class="bx bx-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-7">
+              <!-- Floating label: Select -->
+              <div class="form-floating mb-4">
+                <select class="form-select" name="correct_answer" id="fl-select">
+                  <option selected>Select</option>
+                  <option value="1">Option 1</option>
+                  <option value="2">Option 2</option>
+                </select>
+                <label for="fl-select">Correct Answer</label>
+              </div>
+            </div>
+            <div class="col-5">
+              <div class="form-floating mb-4">
+                <input class="form-control form-control-sm" min="1" name="question_point" type="number" id="fl-text" placeholder="Option 2">
+                <label for="fl-text">Point</label>
+              </div>
+            </div>
+          </div>
+          
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm m-auto d-none actual_submit" type="submit">Add</button>
+        <button class="btn btn-primary btn-sm m-auto option-submit-btn" type="button">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $('document').ready(function() {
+    
+    $('.edit-quesset-btn').click(function() {
+      // alert('hello');
+      title = $(this).attr('quesset_title_text');
+      category_id = $(this).attr('quesset_category_id');
+      target_quesset_id = $(this).attr('target-item-id');
+
+      console.log(title, category_id)
+      $('.quesset_update_box').find('input[name="quiz_title"]').val(title);
+      var option_form_action = $('.quesset_update_box').find('form.options_form').attr('action')
+      $('.quesset_update_box').find('form.options_form').attr('action', `${option_form_action}${target_quesset_id}/`);
+    })
+
+    // add option input
+    
+
+    $('.add_option_input').click(function() {
+      var total_option_inputs = $('.quesset_update_box').find('.option_input').length
+      var option_number = (total_option_inputs+1);
+
+      var option_input_dom = `<div class="option_input form-floating mt-4">
+              <input class="form-control form-control-sm" name="name_option_${option_number}" type="text" id="fl-text" placeholder="Option 1">
+              <label for="fl-text">Option ${option_number}</label>
+              <!-- Danger outline icon button -->
+              <button target_index="${option_number}" class="btn btn-secondary text-danger btn-icon option_remove" type="button">
+                <i class="bx bx-trash"></i>
+              </button>
+            </div>`;
+
+      
+      $('.options_form').find('select[name="correct_answer"]').append(`<option value="${option_number}">Option ${option_number}</option>`)
+      $('.ques-option-box').append(option_input_dom);
+
+      $('.option_remove').click(function() {
+        $(this).parent('.option_input').remove();
+        var target_index = $(this).attr('target_index');
+        $('.options_form').find('select[name="correct_answer"]').find('option').eq(target_index).remove();
+      })
+
+    })
+    
+    
+
+    $('.option-submit-btn').click(function() {
+      // $('.ques-option-box').each(function(index, element))
+      var values = [];
+      $('.ques-option-box .option_input').each(function(index) {
+        values.push($(this).find('input').val())
+        
+      })
+      var all_value = values.join('|')
+      console.log(all_value)
+      $('.combined-option-box').html(`<input type="hidden" value="${all_value}" name="all_values" />`)
+      $('.actual_submit').click();
+    });
+
+  
+    // add_quesset
+    // $('.quesset_form').submit(function(e) {
+    //   e.preventDefault();
+    //   $.ajax({
+    //     method: "POST",
+    //     url: "{% url 'create_quesset' %}",
+    //     data: $(this).serialize(),
+    //     success: function(result) {
+    //       alert('success')
+    //       // console.log(result)
+    //       for (var i=0; i < result.quesset.length; i++) {
+    //         console.log(result.quesset[i])
+    //       }
+
+    //       $('.quesset_form').find('.btn-close').click();
+    //     },
+    //     error: function(r) {
+    //       alert('error')
+    //     }
+    //   });
+    // });
+  })
+  
+</script>
+{% endblock %}
